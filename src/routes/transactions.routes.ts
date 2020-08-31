@@ -1,20 +1,29 @@
 import { Router } from 'express';
+import { getCustomRepository } from 'typeorm';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
-import DeleteTransactionService from '../services/DeleteTransactionService';
-import ImportTransactionsService from '../services/ImportTransactionsService';
+// import DeleteTransactionService from '../services/DeleteTransactionService';
+// import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
 
 transactionsRouter.get('/', async (request, response) => {
-  // TODO
+  const transactionsRepository = getCustomRepository(TransactionsRepository);
+
+  const transactions = await transactionsRepository.find();
+  // pega o balanço
+  const balance = await transactionsRepository.getBalance(transactions);
+  return response.json({ transactions, balance });
 });
 
 transactionsRouter.post('/', async (request, response) => {
   const { title, value, type, category } = request.body;
+  const transactionsRepository = new TransactionsRepository();
   // cria o objeto
-  const createTransactionService = new CreateTransactionService();
+  const createTransactionService = new CreateTransactionService(
+    transactionsRepository,
+  );
   // execulta o metodo de criação
   const transaction = await createTransactionService.execute({
     title,
@@ -26,12 +35,12 @@ transactionsRouter.post('/', async (request, response) => {
   return response.json(transaction);
 });
 
-transactionsRouter.delete('/:id', async (request, response) => {
+/* transactionsRouter.delete('/:id', async (request, response) => {
   // TODO
-});
+}); */
 
-transactionsRouter.post('/import', async (request, response) => {
+/* transactionsRouter.post('/import', async (request, response) => {
   // TODO
-});
+}); */
 
 export default transactionsRouter;

@@ -3,6 +3,7 @@ import { getRepository } from 'typeorm';
 import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
 import Category from '../models/Category';
+import TransactionsRepository from '../repositories/TransactionsRepository';
 // cria uma interface
 interface RequestDTO {
   title: string;
@@ -12,6 +13,12 @@ interface RequestDTO {
 }
 
 class CreateTransactionService {
+  private transactionsRepository: TransactionsRepository;
+
+  constructor(transactionsRepository: TransactionsRepository) {
+    this.transactionsRepository = transactionsRepository;
+  }
+
   public async execute({
     title,
     value,
@@ -19,9 +26,26 @@ class CreateTransactionService {
     category,
   }: RequestDTO): Promise<Transaction> {
     // cria um repositorio
+    const transactionsRepository = getRepository(Transaction);
     const categoriesRepository = getRepository(Category);
+    //
+    const allTransactions = await transactionsRepository.find({
+      select: ['type', 'value'],
+    });
+    // verefica se tem saldo
+    const { total } = await this.transactionsRepository.getBalance(
+      allTransactions,
+    );
+    // verefica se tem saldo
+    if (total < value && type === 'outcome') {
+      throw new AppError(
+        'The requested amount above the available amount in the account',
+        400,
+      );
+    }
     // verefica se a categoria já existe
     const checkCategoryExist = await categoriesRepository.findOne({
+      select: ['id'],
       where: { title: category },
     });
     // caso não exitir
@@ -42,8 +66,6 @@ class CreateTransactionService {
     if (!categories) {
       throw new AppError('Failed to register in the database', 400);
     }
-    // cria um repositorio
-    const transactionsRepository = getRepository(Transaction);
     // cadastre uma nova Transaction
     // cria instancia da Transaction
     const transaction = transactionsRepository.create({
