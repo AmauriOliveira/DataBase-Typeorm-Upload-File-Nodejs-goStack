@@ -3,8 +3,8 @@ import { getCustomRepository } from 'typeorm';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import DeleteTransactionService from '../services/DeleteTransactionService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
 
@@ -38,14 +38,18 @@ transactionsRouter.post('/', async (request, response) => {
 transactionsRouter.delete('/:id', async (request, response) => {
   // pega o id
   const { id } = request.params;
-  const transactionsRepository = getCustomRepository(TransactionsRepository);
 
-  const transactions = await transactionsRepository.delete(id);
-  return response.json(transactions);
+  const transactionsRepository = new TransactionsRepository();
+  // cria o objeto
+  const deleteTransactionService = new DeleteTransactionService(
+    transactionsRepository,
+  );
+  // execulta o metodo de apagar
+  const transaction = await deleteTransactionService.execute(id);
+
+  return response.json(transaction);
 });
 
-/* transactionsRouter.post('/import', async (request, response) => {
-  // TODO
-}); */
+transactionsRouter.post('/import', async (request, response) => {});
 
 export default transactionsRouter;
