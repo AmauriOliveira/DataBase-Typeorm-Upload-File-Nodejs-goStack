@@ -35,9 +35,14 @@ transactionsRouter.post('/', async (request, response) => {
   return response.json(transaction);
 });
 
-/* transactionsRouter.delete('/:id', async (request, response) => {
-  // TODO
-}); */
+transactionsRouter.delete('/:id', async (request, response) => {
+  // pega o id
+  const { id } = request.params;
+  const transactionsRepository = getCustomRepository(TransactionsRepository);
+
+  const transactions = await transactionsRepository.delete(id);
+  return response.json(transactions);
+});
 
 /* transactionsRouter.post('/import', async (request, response) => {
   // TODO
