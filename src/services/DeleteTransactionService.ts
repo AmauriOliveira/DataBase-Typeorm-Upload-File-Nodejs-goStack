@@ -1,16 +1,13 @@
 import { getRepository, DeleteResult } from 'typeorm';
 import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
-import TransactionsRepository from '../repositories/TransactionsRepository';
+
+interface RequestDTO {
+  id: string;
+}
 
 class DeleteTransactionService {
-  private transactionsRepository: TransactionsRepository;
-
-  constructor(transactionsRepository: TransactionsRepository) {
-    this.transactionsRepository = transactionsRepository;
-  }
-
-  public async execute(id: string): Promise<DeleteResult> {
+  public async execute({ id }: RequestDTO): Promise<DeleteResult> {
     const transactionsRepository = getRepository(Transaction);
 
     // verefica se a transsaction já existe
